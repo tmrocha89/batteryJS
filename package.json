@@ -4,13 +4,17 @@
   "description": "Alarm for when router's battery is in a low level",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron main.js"
+  },
+  "repository" :
+  { "type" : "git"
+  , "url" : "https://github.com/tmrocha89/batteryJS.git"
   },
   "author": "TmRocha89",
   "license": "ISC",
   "dependencies": {
-    "electron": "^0.4.1",
-    "electron-prebuilt": "^0.37.2",
+    "electron-prebuilt": "^0.36.0",
     "request": "^2.69.0"
   }
 }
