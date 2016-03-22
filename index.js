@@ -1,6 +1,7 @@
 'use strict';
 
 var http = require('http');
+const notifier = require('node-notifier');
 
 var options = {
   host : '192.168.1.1',
@@ -16,6 +17,18 @@ var options = {
 };
 
 
+// Object
+notifier.notify({
+  'title': 'BatteryJS',
+  'message': 'Starting...'
+});
+
+var chargingState = null;
+var batteryState = null;
+
+var batteryMessage = '';
+var notifiedLevel = null;
+
 (function magic(){
 	http.get(options, function(res) {
 		var bodyChunks = [];
@@ -25,21 +38,45 @@ var options = {
 			var body = Buffer.concat(bodyChunks);
 			var batteryObj = JSON.parse(body);
 			
-			if(batteryObj.battery_charging != 1){
+			if(!chargingState){
+				chargingState = batteryObj.battery_charging;
+				console.log("ChargingState: "+chargingState);
+			}
+
+			if(chargingState != batteryObj.battery_charging) {
+				notifier.notify({
+					'title': 'BatteryJS',
+					'message': 'Battery is no long charging'
+				});
 				console.log("Router esta a carregar " + batteryObj.battery_charging);
-			
-			//console.log("Carga do router: " + batteryObj.battery_pers);
-				switch(parseInt(batteryObj.battery_pers)){
-					case 0: console.log("Battery is dying"); break;
-					case 1: console.log("Battery almost dead"); break;
-					case 2: console.log("Alf way"); break;
-					case 3:
-					case 4: console.log("Good to go"); break;
+							
+			}
+
+			if(!batteryState) {
+				batteryState = parseInt(batteryObj.battery_pers);
+			}
+
+			if(chargingState != 1) {
+				switch(batteryState){
+					case 0: batteryMessage = 'Battery is dying'; break;
+					case 1: batteryMessage = 'Battery almost dead'; break;
+					case 2: batteryMessage = 'Alf way'; break;
+					case 3: batteryMessage = 'Without full charge'; break;
+					case 4: batteryMessage = 'Full charged'; break;
 				}
 			}
+
+			if(!notifiedLevel || notifiedLevel!=batteryState) {
+				notifiedLevel = batteryState;
+				notifier.notify({
+					'title': 'BatteryJS',
+					'message': batteryMessage
+				});
+			}
+
 		});
 }).on('error',function(err){
 	console.log(err);
 });
-		setTimeout(magic, 3000);
+		setTimeout(magic, batteryState*1000);
 })();
